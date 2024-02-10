@@ -19,6 +19,7 @@ router.get("/", async (req, res, next) => {
     });
   } catch (err) {
     console.log(err.message);
+    res.send(err);
   }
 });
 
@@ -40,6 +41,7 @@ router.get("/:contactId", async (req, res, next) => {
     }
   } catch (err) {
     console.log(err.message);
+    res.send(err);
   }
 });
 
@@ -52,7 +54,6 @@ router.post("/", async (req, res, next) => {
       favorite: req.query.favorite || false,
     };
     const result = await addContact(body);
-    console.log(result);
     if (result && result.status !== 400) {
       res.status(201).json({
         status: "success",
@@ -67,11 +68,8 @@ router.post("/", async (req, res, next) => {
       });
     }
   } catch (err) {
-    if (err.isJoi) {
-      err.status = 400;
-      return err;
-    }
     console.log(err.message);
+    res.send(err);
   }
 });
 
@@ -93,6 +91,7 @@ router.delete("/:contactId", async (req, res, next) => {
     }
   } catch (err) {
     console.log(err.message);
+    res.send(err);
   }
 });
 
@@ -105,7 +104,6 @@ router.put("/:contactId", async (req, res, next) => {
       favorite: req.query.favorite,
     };
     const result = await updateContact(req.params.contactId, body);
-    console.log(result);
     if (result && result.status !== 400 && result !== 400) {
       res.json({
         status: "success",
@@ -127,6 +125,7 @@ router.put("/:contactId", async (req, res, next) => {
     }
   } catch (err) {
     console.log(err.message);
+    res.send(err);
   }
 });
 
@@ -157,6 +156,7 @@ router.patch("/:contactId/favorite", async (req, res, next) => {
     }
   } catch (err) {
     console.log(err.message);
+    res.send(err);
   }
 });
 

@@ -6,7 +6,11 @@ const {
 const Contact = require("../service/schemas/contact");
 
 const listContacts = async () => {
-  return await Contact.find();
+  try {
+    return await Contact.find();
+  } catch (err) {
+    console.log(err.message);
+  }
 };
 
 const getContactById = async (contactId) => {
