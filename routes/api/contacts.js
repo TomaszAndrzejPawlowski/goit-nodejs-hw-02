@@ -2,11 +2,11 @@ const express = require("express");
 const {
   listContacts,
   getContactById,
-  removeContact,
   addContact,
+  removeContact,
   updateContact,
+  updateStatusContact,
 } = require("../../models/contacts");
-const { v4 } = require("uuid");
 const router = express.Router();
 
 router.get("/", async (req, res, next) => {
@@ -19,6 +19,11 @@ router.get("/", async (req, res, next) => {
     });
   } catch (err) {
     console.log(err.message);
+    res.status(500).json({
+      status: "failure",
+      code: 500,
+      message: err.message,
+    });
   }
 });
 
@@ -40,33 +45,43 @@ router.get("/:contactId", async (req, res, next) => {
     }
   } catch (err) {
     console.log(err.message);
+    res.status(500).json({
+      status: "failure",
+      code: 500,
+      message: err.message,
+    });
   }
 });
 
 router.post("/", async (req, res, next) => {
   try {
     const body = {
-      id: v4(),
       name: req.query.name,
       email: req.query.email,
       phone: req.query.phone,
+      favorite: req.query.favorite || false,
     };
     const result = await addContact(body);
-    if (result.status === 400) {
-      res.status(400).json({
-        status: "failure",
-        code: 400,
-        message: result.message,
-      });
-    } else if (result) {
+    if (result && result.status !== 400) {
       res.status(201).json({
         status: "success",
         code: 201,
         data: result,
       });
+    } else {
+      res.status(400).json({
+        status: "failure",
+        code: 400,
+        message: result.message,
+      });
     }
   } catch (err) {
     console.log(err.message);
+    res.status(500).json({
+      status: "failure",
+      code: 500,
+      message: err.message,
+    });
   }
 });
 
@@ -88,6 +103,11 @@ router.delete("/:contactId", async (req, res, next) => {
     }
   } catch (err) {
     console.log(err.message);
+    res.status(500).json({
+      status: "failure",
+      code: 500,
+      message: err.message,
+    });
   }
 });
 
@@ -97,6 +117,7 @@ router.put("/:contactId", async (req, res, next) => {
       name: req.query.name,
       email: req.query.email,
       phone: req.query.phone,
+      favorite: req.query.favorite,
     };
     const result = await updateContact(req.params.contactId, body);
     if (result && result.status !== 400 && result !== 400) {
@@ -105,22 +126,65 @@ router.put("/:contactId", async (req, res, next) => {
         code: 200,
         data: result,
       });
-    } else if (!result) {
+      return;
+    }
+    if (!result) {
       res.status(404).json({
         status: "failure",
         code: 404,
         message: `Not found`,
       });
-    } else {
-      res.status(400).json({
-        status: "failure",
-        code: 400,
-        message: result.message || "Provide a change to make",
-      });
+      return;
     }
+    res.status(400).json({
+      status: "failure",
+      code: 400,
+      message: result.message || "Provide a change to make",
+    });
   } catch (err) {
     console.log(err.message);
+    res.status(500).json({
+      status: "failure",
+      code: 500,
+      message: err.message,
+    });
   }
 });
 
+router.patch("/:contactId/favorite", async (req, res, next) => {
+  try {
+    const body = {
+      favorite: req.query.favorite,
+    };
+    const result = await updateStatusContact(req.params.contactId, body);
+    if (result && result.status !== 400 && result !== 400) {
+      res.json({
+        status: "success",
+        code: 200,
+        data: result,
+      });
+      return;
+    }
+    if (!result) {
+      res.status(404).json({
+        status: "failure",
+        code: 404,
+        message: `Not found`,
+      });
+      return;
+    }
+    res.status(400).json({
+      // status: "failure",
+      // code: 400,
+      message: result.message || "missing field favorite",
+    });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).json({
+      status: "failure",
+      code: 500,
+      message: err.message,
+    });
+  }
+});
 module.exports = router;

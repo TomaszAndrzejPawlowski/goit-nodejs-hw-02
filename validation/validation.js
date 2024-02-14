@@ -1,19 +1,39 @@
 const Joi = require("joi");
 
 const newContactAuthSchema = Joi.object({
-  id: Joi.string().required(),
-  name: Joi.string().min(3).max(50).required(),
+  name: Joi.string()
+    .pattern(/^[a-zA-Zа-яА-Я]+([ -'][a-zA-Zа-яА-Я]+)*$/)
+    .min(3)
+    .max(50)
+    .required(),
   email: Joi.string().email().required(),
-  phone: Joi.number().integer().required(),
+  phone: Joi.string()
+    .pattern(/^[+]?[0-9 \u0028\u0029\u002D]*$/)
+    .min(9)
+    .max(24)
+    .required(),
+  favorite: Joi.boolean(),
 });
 
 const editContactAuthSchema = Joi.object({
-  name: Joi.string().min(3).max(50),
+  name: Joi.string()
+    .pattern(/^[a-zA-Zа-яА-Я]+([ -'][a-zA-Zа-яА-Я]+)*$/)
+    .min(3)
+    .max(50),
   email: Joi.string().email(),
-  phone: Joi.number().integer(),
+  phone: Joi.string()
+    .pattern(/^[+]?[0-9 \u0028\u0029\u002D]*$/)
+    .min(9)
+    .max(24),
+  favorite: Joi.boolean(),
+});
+
+const editFavContactAuthSchema = Joi.object({
+  favorite: Joi.boolean().required(),
 });
 
 module.exports = {
   newContactAuthSchema,
   editContactAuthSchema,
+  editFavContactAuthSchema,
 };
