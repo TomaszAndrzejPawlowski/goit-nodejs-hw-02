@@ -174,8 +174,8 @@ router.patch("/:contactId/favorite", async (req, res, next) => {
       return;
     }
     res.status(400).json({
-      // status: "failure",
-      // code: 400,
+      status: "failure",
+      code: 400,
       message: result.message || "missing field favorite",
     });
   } catch (err) {
