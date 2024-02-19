@@ -27,11 +27,12 @@ const userSchema = new Schema(
   { versionKey: false }
 );
 
-userSchema.methods.setPassword = (password) => {
+userSchema.methods.setPassword = function (password) {
+  console.log(this.password + " jestes w Schema");
   this.password = bCrypt.hashSync(password, bCrypt.genSaltSync(6));
 };
 
-userSchema.methods.validPassword = (password) => {
+userSchema.methods.validPassword = function (password) {
   return bCrypt.compareSync(password, this.password);
 };
 

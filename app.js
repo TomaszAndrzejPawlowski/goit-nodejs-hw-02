@@ -5,8 +5,8 @@ const mongoose = require("mongoose");
 
 require("dotenv").config();
 
-const contactsRouter = require("./routes/api/contacts");
 const usersRouter = require("./routes/api/users");
+const contactsRouter = require("./routes/api/contacts");
 
 const app = express();
 
