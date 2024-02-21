@@ -10,15 +10,14 @@ require("dotenv").config();
 
 const registerUser = async (body) => {
   try {
-    const { email, password } = body;
+    if (body.email) body.email = body.email.toLowerCase();
     await newUserAuthSchema.validateAsync(body);
-    email.toLowerCase();
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: body.email });
     if (user) {
       return 409;
     }
-    const newUser = new User({ email });
-    newUser.setPassword(password);
+    const newUser = new User({ email: body.email });
+    newUser.setPassword(body.password);
     return newUser;
   } catch (err) {
     if (err.isJoi) {
