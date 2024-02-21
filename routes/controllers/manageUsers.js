@@ -19,7 +19,6 @@ const signupUser = async (req, res, next) => {
       email: req.body.email,
       password: req.body.password,
     };
-    console.log("tutaj");
     const result = await registerUser(body);
     if (result && result !== 409 && result.status !== 400) {
       await result.save();
@@ -35,7 +34,6 @@ const signupUser = async (req, res, next) => {
       });
     }
     const message = result.message || "Email in use";
-    console.log(message);
     return badReqResponse(res, message);
   } catch (err) {
     errorResponse(res, err.message);
