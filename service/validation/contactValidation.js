@@ -32,8 +32,19 @@ const editFavContactAuthSchema = Joi.object({
   favorite: Joi.boolean().required(),
 });
 
+const paginationAuthSchema = Joi.object({
+  page: Joi.number().min(1).required(),
+  limit: Joi.number().min(1).max(20).required(),
+});
+
+const contactIsFavoriteAuthSchema = Joi.object({
+  favorite: Joi.bool().required(),
+});
+
 module.exports = {
   newContactAuthSchema,
   editContactAuthSchema,
   editFavContactAuthSchema,
+  paginationAuthSchema,
+  contactIsFavoriteAuthSchema,
 };

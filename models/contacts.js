@@ -2,7 +2,9 @@ const {
   newContactAuthSchema,
   editContactAuthSchema,
   editFavContactAuthSchema,
-} = require("../validation/validation");
+  paginationAuthSchema,
+  contactIsFavoriteAuthSchema,
+} = require("../service/validation/contactValidation");
 const Contact = require("../service/schemas/contact");
 
 const listContacts = async () => {
@@ -91,6 +93,45 @@ const updateStatusContact = async (contactId, body) => {
   }
 };
 
+const getPageOfContacts = async (pagination) => {
+  try {
+    await paginationAuthSchema.validateAsync(pagination);
+    const { page, limit } = pagination;
+    const skip = (page - 1) * limit;
+    const contacts = await Contact.find().limit(limit).skip(skip);
+    const totalContacts = await Contact.countDocuments();
+    const previousPage = page - 1;
+    const pagesLeft = Math.ceil((totalContacts - skip) / limit) - 1;
+    const response = {
+      contacts,
+      previousPage,
+      pagesLeft,
+      totalContacts,
+    };
+    return response;
+  } catch (err) {
+    if (err.isJoi) {
+      err.status = 400;
+      return err.message;
+    }
+    console.log(err.message);
+  }
+};
+
+const getContactByFavorite = async (favorite) => {
+  try {
+    await contactIsFavoriteAuthSchema.validateAsync({ favorite });
+    const contacts = await Contact.find({ favorite });
+    return contacts;
+  } catch (err) {
+    if (err.isJoi) {
+      err.status = 400;
+      return err;
+    }
+    console.log(err.message);
+  }
+};
+
 module.exports = {
   listContacts,
   getContactById,
@@ -98,4 +139,6 @@ module.exports = {
   addContact,
   updateContact,
   updateStatusContact,
+  getPageOfContacts,
+  getContactByFavorite,
 };
