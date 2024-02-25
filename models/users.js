@@ -1,3 +1,4 @@
+const Jimp = require("jimp");
 const {
   newUserAuthSchema,
   loginUserAuthSchema,
@@ -7,6 +8,44 @@ const {
 const User = require("../service/schemas/user");
 const { sign } = require("jsonwebtoken");
 require("dotenv").config();
+const multer = require("multer");
+const path = require("path");
+const { stat, mkdir } = require("fs/promises");
+
+let nameOfSavedFile = "";
+let extOfSavedFile = "";
+const UPLOAD_TMP_DIRECTORY = "./tmp";
+const UPLOAD_DIRECTORY = path.join("public", "avatars", nameOfSavedFile);
+
+stat(UPLOAD_TMP_DIRECTORY).catch(() =>
+  mkdir(UPLOAD_TMP_DIRECTORY, { recursive: true })
+);
+stat(UPLOAD_DIRECTORY).catch(() =>
+  mkdir(UPLOAD_DIRECTORY, { recursive: true })
+);
+
+const getnameOfSavedFile = (file) => {
+  const originalName = file.originalname;
+  const fileExt = path.extname(originalName);
+  extOfSavedFile = fileExt;
+  const fileNameWithoutExt = path.basename(originalName, fileExt);
+  const nameOfSavedFile = `${fileNameWithoutExt}-oryginalSize${fileExt}`;
+  // V in situation when I would need to save multiple pic's of the same name with different timestamp V
+  // `${fileNameWithoutExt}-${Date.now()}${fileExt}`;
+  return nameOfSavedFile;
+};
+const storage = multer.diskStorage({
+  destination: function (_, __, cb) {
+    cb(null, UPLOAD_TMP_DIRECTORY);
+  },
+  filename: function (_, file, cb) {
+    nameOfSavedFile = getnameOfSavedFile(file);
+    cb(null, nameOfSavedFile);
+  },
+});
+const upload = multer({ storage, limits: { fieldSize: 1024 * 1024 } });
+
+const uploadPicture = upload.single("picture");
 
 const registerUser = async (body) => {
   try {
@@ -86,9 +125,39 @@ const updateSubscription = async (body) => {
   }
 };
 
+const updateAvatar = async (req, res, body) => {
+  try {
+    const user = await User.findOne({ token: body.token });
+    if (user) {
+      await Jimp.read("tmp/incognitoman.png").then(function (img) {
+        img
+          .resize(250, 250)
+          .write(`${UPLOAD_DIRECTORY}/${user.email}-avatar${extOfSavedFile}`);
+      });
+      console.log(extOfSavedFile);
+      const currentAvatarName = `http://localhost:3000/avatars/${user.email}-avatar${extOfSavedFile}`;
+      await User.findOneAndUpdate(
+        { token: user.token },
+        {
+          $set: {
+            avatarURL: currentAvatarName,
+          },
+        }
+      );
+      user.avatarURL = currentAvatarName;
+      return user;
+    }
+    return user;
+  } catch (err) {
+    console.log(err.message);
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   updateSubscription,
   currentUser,
+  updateAvatar,
+  uploadPicture,
 };

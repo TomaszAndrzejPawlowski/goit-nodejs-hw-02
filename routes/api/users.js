@@ -6,7 +6,9 @@ const {
   logoutUser,
   getCurrentUser,
   updateUserSubscription,
+  changeAvatar,
 } = require("../controllers/manageUsers");
+const { uploadPicture } = require("../../models/users");
 
 const router = express.Router();
 
@@ -19,5 +21,7 @@ router.get("/logout", auth, logoutUser);
 router.get("/current", auth, getCurrentUser);
 
 router.patch("/", auth, updateUserSubscription);
+
+router.patch("/avatars", auth, uploadPicture, changeAvatar);
 
 module.exports = router;

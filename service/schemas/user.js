@@ -1,5 +1,14 @@
 const mongoose = require("mongoose");
 const bCrypt = require("bcryptjs");
+const gravatar = require("gravatar");
+
+const generateGravatar = (email) => {
+  return gravatar.url(email, {
+    s: 250,
+    r: "pg",
+    d: "mm",
+  });
+};
 
 const Schema = mongoose.Schema;
 
@@ -22,6 +31,10 @@ const userSchema = new Schema(
     token: {
       type: String,
       default: null,
+    },
+    avatarURL: {
+      type: String,
+      default: `${generateGravatar(this.email)}`,
     },
   },
   { versionKey: false }
