@@ -134,7 +134,6 @@ const updateAvatar = async (req, res, body) => {
           .resize(250, 250)
           .write(`${UPLOAD_DIRECTORY}/${user.email}-avatar${extOfSavedFile}`);
       });
-      console.log(extOfSavedFile);
       const currentAvatarName = `http://localhost:3000/avatars/${user.email}-avatar${extOfSavedFile}`;
       await User.findOneAndUpdate(
         { token: user.token },
