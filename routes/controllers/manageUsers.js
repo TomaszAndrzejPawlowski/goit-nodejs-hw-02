@@ -144,11 +144,7 @@ const changeAvatar = async (req, res, next) => {
     return badReqResponse(res, "Provide image to upload");
   }
   try {
-    const body = {
-      token: req.user.token,
-      avatar: req.file.originalname,
-    };
-    const result = await updateAvatar(req, res, body);
+    const result = await updateAvatar(req, res);
     if (result) {
       return res.status(200).json({
         status: "success",

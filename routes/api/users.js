@@ -8,7 +8,9 @@ const {
   updateUserSubscription,
   changeAvatar,
 } = require("../controllers/manageUsers");
-const { uploadPicture } = require("../../models/users");
+const {
+  uploadPicture,
+} = require("../../routes/controllers/managePictureUpload");
 
 const router = express.Router();
 
