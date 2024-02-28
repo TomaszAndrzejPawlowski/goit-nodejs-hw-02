@@ -1,3 +1,4 @@
+const Jimp = require("jimp");
 const {
   newUserAuthSchema,
   loginUserAuthSchema,
@@ -7,6 +8,11 @@ const {
 const User = require("../service/schemas/user");
 const { sign } = require("jsonwebtoken");
 require("dotenv").config();
+const path = require("path");
+const {
+  UPLOAD_DIRECTORY,
+} = require("../routes/controllers/managePictureUpload");
+const fs = require("fs/promises");
 
 const registerUser = async (body) => {
   try {
@@ -86,9 +92,41 @@ const updateSubscription = async (body) => {
   }
 };
 
+const updateAvatar = async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.user._id });
+    if (user) {
+      const currentAvatarName = `${user.email}-avatar${path.extname(
+        req.file.originalname
+      )}`;
+      await Jimp.read(`tmp/${req.file.originalname}`).then(function (img) {
+        img.resize(250, 250).write(`${UPLOAD_DIRECTORY}/${currentAvatarName}`);
+      });
+      const currentAvatarURL = `http://localhost:3000/avatars/${currentAvatarName}`;
+      await User.findOneAndUpdate(
+        { token: user.token },
+        {
+          $set: {
+            avatarURL: currentAvatarURL,
+          },
+        }
+      );
+      user.avatarURL = currentAvatarURL;
+      await fs
+        .unlink(`tmp/${req.file.originalname}`)
+        .catch((err) => console.log(err.message));
+      return user;
+    }
+    return user;
+  } catch (err) {
+    console.log(err.message);
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   updateSubscription,
   currentUser,
+  updateAvatar,
 };
