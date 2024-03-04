@@ -4,6 +4,8 @@ const {
   currentUser,
   updateSubscription,
   updateAvatar,
+  searchForUser,
+  checkUserEmail,
 } = require("../../models/users");
 const User = require("../../service/schemas/user");
 const {
@@ -12,6 +14,7 @@ const {
   badReqResponse,
   unauthorizedResponse,
 } = require("./common");
+const sendingEmails = require("../../service/middleware/sendingEmails");
 
 const signupUser = async (req, res, next) => {
   try {
@@ -22,6 +25,7 @@ const signupUser = async (req, res, next) => {
     const result = await registerUser(body);
     if (result && result !== 409 && result.status !== 400) {
       await result.save();
+      sendingEmails(result.email, result.verificationToken);
       return res.status(201).json({
         status: "success",
         code: 201,
@@ -48,6 +52,9 @@ const loginOnUser = async (req, res, next) => {
       password: req.body.password,
     };
     const result = await loginUser(body);
+    if (result && result.status === 401) {
+      return unauthorizedResponse(res, result.message);
+    }
     if (result && result.status === 400) {
       return badReqResponse(res, result.message);
     }
@@ -158,6 +165,45 @@ const changeAvatar = async (req, res, next) => {
   }
 };
 
+const verifyByToken = async (req, res, next) => {
+  try {
+    const result = await searchForUser(req.params);
+    if (result) {
+      return res.status(200).json({
+        status: "success",
+        code: 200,
+        data: "Verification successful",
+      });
+    }
+    return notFoundResponse(res, "User not found");
+  } catch (err) {
+    errorResponse(res, err.message);
+  }
+};
+
+const resendVerificationEmail = async (req, res, next) => {
+  try {
+    const result = await checkUserEmail(req.body.email);
+    if (result && result !== 400 && !result.message) {
+      sendingEmails(result.email, result.verificationToken);
+      return res.status(200).json({
+        status: "success",
+        code: 200,
+        data: "Verification email sent",
+      });
+    }
+    if (result && result.message) {
+      return badReqResponse(res, result.message);
+    }
+    if (result === 400) {
+      return badReqResponse(res, "Verification has already been passed");
+    }
+    return notFoundResponse(res, "User not found");
+  } catch (err) {
+    errorResponse(res, err.message);
+  }
+};
+
 module.exports = {
   signupUser,
   loginOnUser,
@@ -165,4 +211,6 @@ module.exports = {
   getCurrentUser,
   updateUserSubscription,
   changeAvatar,
+  verifyByToken,
+  resendVerificationEmail,
 };

@@ -4,6 +4,7 @@ const {
   loginUserAuthSchema,
   currUserAuthSchema,
   editSubUserAuthSchema,
+  checkUserEmailSchema,
 } = require("../service/validation/userValidation");
 const User = require("../service/schemas/user");
 const { sign } = require("jsonwebtoken");
@@ -13,6 +14,7 @@ const {
   UPLOAD_DIRECTORY,
 } = require("../routes/controllers/managePictureUpload");
 const fs = require("fs/promises");
+const { nanoid } = require("nanoid");
 
 const registerUser = async (body) => {
   try {
@@ -22,7 +24,10 @@ const registerUser = async (body) => {
     if (user) {
       return 409;
     }
-    const newUser = new User({ email: body.email });
+    const newUser = new User({
+      email: body.email,
+      verificationToken: nanoid(),
+    });
     newUser.setPassword(body.password);
     return newUser;
   } catch (err) {
@@ -40,13 +45,20 @@ const loginUser = async (body) => {
     await loginUserAuthSchema.validateAsync(body);
     email.toLowerCase();
     const user = await User.findOne({ email });
-    if (user && user.validPassword(password)) {
+    if (user && user.validPassword(password) && user.verify === true) {
       const payload = {
         id: user.id,
       };
       const token = sign(payload, process.env.JWT_SECRET);
       const loggedUser = { ...user._doc, token };
       return loggedUser;
+    }
+    if (user && user.validPassword(password) && user.verify === false) {
+      const notVerified = {
+        status: 401,
+        message: "User has not been verified. Check your address email",
+      };
+      return notVerified;
     }
   } catch (err) {
     if (err.isJoi) {
@@ -123,10 +135,47 @@ const updateAvatar = async (req, res) => {
   }
 };
 
+const searchForUser = async (token) => {
+  try {
+    const { verificationToken } = token;
+    const user = await User.findOne({ verificationToken });
+    if (user) {
+      await User.findOneAndUpdate(
+        { _id: user._id },
+        {
+          $set: {
+            verificationToken: null,
+            verify: true,
+          },
+        }
+      );
+    }
+    return user;
+  } catch (err) {
+    console.log(err.message);
+  }
+};
+
+const checkUserEmail = async (email) => {
+  try {
+    await checkUserEmailSchema.validateAsync({ email });
+    const user = await User.findOne({ email });
+    if (user && user.verify === false) return user;
+    if (user && user.verify === true) return 400;
+  } catch (err) {
+    if (err.isJoi) {
+      return err;
+    }
+    console.log(err.message);
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   updateSubscription,
   currentUser,
   updateAvatar,
+  searchForUser,
+  checkUserEmail,
 };
