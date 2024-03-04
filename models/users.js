@@ -16,9 +16,6 @@ const {
 const fs = require("fs/promises");
 const { nanoid } = require("nanoid");
 
-// const setVerificationToken = () => {
-//   return nanoid();
-// };
 const registerUser = async (body) => {
   try {
     if (body.email) body.email = body.email.toLowerCase();

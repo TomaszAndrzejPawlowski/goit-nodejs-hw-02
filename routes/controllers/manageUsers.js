@@ -184,7 +184,6 @@ const verifyByToken = async (req, res, next) => {
 const resendVerificationEmail = async (req, res, next) => {
   try {
     const result = await checkUserEmail(req.body.email);
-    // console.log(result);
     if (result && result !== 400 && !result.message) {
       sendingEmails(result.email, result.verificationToken);
       return res.status(200).json({

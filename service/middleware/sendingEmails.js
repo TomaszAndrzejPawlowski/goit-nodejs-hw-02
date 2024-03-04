@@ -8,15 +8,18 @@ const MAILGUN_DOMAIN = process.env.MAILGUN_DOMAIN;
 const mailgun = new Mailgun(formData);
 const client = mailgun.client({ username: "api", key: MAILGUN_API_KEY });
 
-const sendingEmails = (email, verificationToken) => {
+const sendingEmails = async (email, verificationToken) => {
   const messageData = {
     from: "noreply@gmail.pl",
     to: email,
     subject: "Verification",
-    text: `Click the verification link: http://localhost:3000/api/users/verify/${verificationToken}`,
+    html: `<strong>Hello New User!</strong><br/>
+    Please, verify your account.<br/><br/>
+    Click the verification link:<br/>
+    http://localhost:3000/api/users/verify/${verificationToken}`,
   };
 
-  client.messages
+  await client.messages
     .create(MAILGUN_DOMAIN, messageData)
     .then((res) => {
       console.log(res);
