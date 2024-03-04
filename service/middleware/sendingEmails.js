@@ -16,7 +16,7 @@ const sendingEmails = async (email, verificationToken) => {
     html: `<strong>Hello New User!</strong><br/>
     Please, verify your account.<br/><br/>
     Click the verification link:<br/>
-    http://localhost:3000/api/users/verify/${verificationToken}`,
+    <a href="http://localhost:3000/api/users/verify/${verificationToken}">VERIFICATION LINK</a>`,
   };
 
   await client.messages
